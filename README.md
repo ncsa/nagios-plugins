@@ -42,13 +42,13 @@ OK: Ethernet9/7 Mbps: 0.47
 
 Make sure traffic is being processed on all interfaces who are connectd, up, and have description.
 ```
-python arista.py -f credentials-for-arista.txt -H arista.local -T traffic_status
+./arista.py -f credentials-for-arista.txt -H arista.local -T traffic_status
 SUCCESS: Traffic is being processed by all connected interfaces
 ```
 
 Alert on interfaces connected at less than 10Gbps, skipping known slower links.
 ```
-arista.py -f credentials-for-arista.txt -H arista.local --skip Management1/1,Management1/2,Ethernet9/42 -T bandwidth_status
+./arista.py -f credentials-for-arista.txt -H arista.local --skip Management1/1,Management1/2,Ethernet9/42 -T bandwidth_status
 SUCCESS: bandwidth check successful
 ```
 
@@ -67,13 +67,13 @@ SUCCESS: lineProtocolStatus check successful
 
 Check if links are not connected at full duplex for connected and up interfaces:
 ```
-arista.py -f credentials-for-arista.txt -H arista.local --skip Management1/2 -T duplex_status
+./arista.py -f credentials-for-arista.txt -H arista.local --skip Management1/2 -T duplex_status
 SUCCESS: duplex check successful
 ```
 
 Check if interfaces are connected:
 ```
-arista.py -f credentials-for-arista.txt -H arista.local --device Ethernet3/11,Ethernet3/12 -T interface_status
+./arista.py -f credentials-for-arista.txt -H arista.local --device Ethernet3/11,Ethernet3/12 -T interface_status
 SUCCESS: Ethernet3/11 connected
 SUCCESS: Ethernet3/12 connected
 SUCCESS: interfaceStatus check successful
