@@ -18,10 +18,7 @@ nagios_unknown  = 3
 status_checks=['protocol_status', 'interface_status', 'duplex_status', 'bandwidth_status']
 rate_checks=['input_rate', 'output_rate']
 other_checks=['dumbno', 'link_status', 'traffic_status']
-all_checks=[]
-all_checks.extend(status_checks)
-all_checks.extend(rate_checks)
-all_checks.extend(other_checks)
+all_checks = status_checks + rate_checks + other_checks
 
 fail   = nagios_ok
 
