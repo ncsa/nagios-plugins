@@ -72,7 +72,7 @@ SUCCESS: duplex check successful
 ```
 
 Check if interfaces are connected:
-`
+```
 arista.py -f credentials-for-arista.txt -H arista.local --device Ethernet3/11,Ethernet3/12 -T interface_status
 SUCCESS: Ethernet3/11 connected
 SUCCESS: Ethernet3/12 connected
@@ -81,7 +81,6 @@ SUCCESS: interfaceStatus check successful
 
 Check line protocol status for all interfaces except those explicitly skipped:
 `./arista.py -f credentials-for-arista.txt -H arista.local --skip Ethernet3/20,Ethernet3/23,Ethernet3/22 -T protocol_status`
-
 
 ### check_crashplan_backup.py
 
