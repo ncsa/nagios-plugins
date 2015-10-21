@@ -282,4 +282,5 @@ def main():
     print "Invalid option"
     exit(nagios_unknown)
 
-main()
+if __name__ == "__main__":
+  main()
