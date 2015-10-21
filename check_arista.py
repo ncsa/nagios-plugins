@@ -59,16 +59,6 @@ def cred_usage():
   '''[1:]
   return doc
 
-
-# interface going down - one is flapping (LinkStatusChanges tracks number of status changes by incrementing - we want to know if it's changing)
-# tap ports on line cards 9-10 - we want input metrics, graph them
-
-# notes
-# line card 9 - 10gb ports
-# line card 10 - 100gb ports (2 up currently)
-# line card 3/1-16 we want output statistics
-
-
 def check_rate(switch, direction, interfaces, skip):
     response = switch.runCmds( 1, ["show interfaces Ethernet" + interfaces] )
     ifs = response[0]["interfaces"]
