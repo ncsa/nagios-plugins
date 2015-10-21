@@ -9,42 +9,42 @@ import time
 from jsonrpclib import Server
 
 # Nagios exit codes
-nagios_ok       = 0
-nagios_warning  = 1
-nagios_critical = 2
-nagios_unknown  = 3
+NAGIOS_OK       = 0
+NAGIOS_WARNING  = 1
+NAGIOS_CRITICAL = 2
+NAGIOS_UNKNOWN  = 3
 
 # Build accepted check type options for argparse
 status_checks=['protocol_status', 'interface_status', 'duplex_status', 'bandwidth_status']
 rate_checks=['input_rate', 'output_rate']
 other_checks=['dumbno', 'link_status', 'traffic_status']
-all_checks = status_checks + rate_checks + other_checks
+all_checks= status_checks + rate_checks + other_checks
 
-fail   = nagios_ok
+result = NAGIOS_OK
 
 # Create dictionaries to minimize code
-direction_map = {
+DIRECTION_MAP = {
   'input_rate':  'inBitsRate',
   'output_rate': 'outBitsRate',
 }
 
-interface_map = {
+INTERFACE_MAP = {
   'input_rate':  '9/1-24',
   'output_rate': '3/1-16',
 }
 
-status_map = {
+STATUS_MAP = {
   'interface_status': 'interfaceStatus',
   'protocol_status':  'lineProtocolStatus',
   'duplex_status':    'duplex',
   'bandwidth_status': 'bandwidth',
 }
 
-status_msg = {
-  '0':  'OK',
-  '1':  'WARNING',
-  '2':  'CRITICAL',
-  '3':  'UNKNOWN',
+STATUS_MSG = {
+  0:  'OK',
+  1:  'WARNING',
+  2:  'CRITICAL',
+  3:  'UNKNOWN',
 }
 
 def cred_usage():
@@ -72,17 +72,17 @@ def check_rate(switch, direction, interfaces, skip):
       rate = info["interfaceStatistics"].get(direction, 0)  / (1000**2)
       d[p] = [rate, threshold(rate)]
     for nic in d:
-      msg=d[nic][1]
-      rc.append(msg)
-      print status_msg[str(msg)] + ':', nic, "Mbps: %.2f" % d[nic][0]
-    exit(max(rc))
+      status=d[nic][1]
+      rc.append(status)
+      print "%s: %s Mbps: %.2f" % (STATUS_MSG[status], nic, d[nic][0])
+    return rc
 
 def check_status(switch, option, devices, skip):
-    status_type=str(option)
+    status_type=option
     crit_items=["connected", "up", "duplexFull", 10000000000]
     response = switch.runCmds( 1, ["show interfaces"])
     ifs = response[0]["interfaces"]
-    fail = nagios_ok
+    result = NAGIOS_OK
     for p,info in ifs.items():
       if p in skip:
         continue
@@ -90,32 +90,30 @@ def check_status(switch, option, devices, skip):
         bw=crit_items[-1]
         if int(info[status_type]) < bw:
           print "CRITICAL: %s Bandwidth: %dGbps" % (p, info[status_type] / (1000**3))
-          fail = nagios_critical
+          result = NAGIOS_CRITICAL
           continue
-        else: continue
       if devices != "None":
         if p in devices:
           if info[status_type] not in crit_items:
-            fail = nagios_critical
+            result = NAGIOS_CRITICAL
             print "CRITICAL: %s %s" % (p, info[status_type])
             continue
           else: print "SUCCESS: %s %s" % (p, info[status_type])
-        else: continue
       if devices == "None":
         if info["description"] is None:
           continue
         if status_type not in info:
           continue
         if info[status_type] not in crit_items:
-          fail = nagios_critical
+          result = NAGIOS_CRITICAL
           print "CRITICAL: %s  %s" % (p, info[status_type])
-    if fail == 0: print "SUCCESS: %s check successful" % status_type
-    exit(fail)
+    if result == 0: print "SUCCESS: %s check successful" % status_type
+    return result
 
 def check_traffic_status(switch, skip):
     response = switch.runCmds( 1, ["show interfaces"])
     ifs = response[0]["interfaces"]
-    fail = 0
+    result = 0
     for p,info in ifs.items():
       if p in skip:
         continue
@@ -129,15 +127,15 @@ def check_traffic_status(switch, skip):
       out_traffic = info["interfaceStatistics"]["outPktsRate"]
       if in_traffic == 0 and out_traffic == 0:
         print "CRITICAL: %s In: %s Out: %s" % (p, in_traffic, out_traffic)
-        fail=1
-    if fail == 1:
-      return nagios_critical
+        result=1
+    if result == 1:
+      return NAGIOS_CRITICAL
     else:
       print "SUCCESS: Traffic is being processed by all connected interfaces"
-      return nagios_ok
+      return NAGIOS_OK
 
 def check_dumbno(switch, skip):
-    path    = '/tmp/%s' % os.path.basename(sys.argv[0]) + '-dumbno.state'
+    path    = '/root/%s' % os.path.basename(sys.argv[0]) + '-dumbno.state'
     current = path + '.current'
     old     = path + '.old'
     response = switch.runCmds( 1, ["enable", "show ip access-lists"] )
@@ -155,10 +153,10 @@ def check_dumbno(switch, skip):
     if os.path.isfile(current):
       os.rename(current, old)
     save_file(rules, current)
-    compare_file(current, old)
+    return compare_file(current, old)
 
 def check_link_status(switch, skip):
-    path    = '/tmp/%s' % os.path.basename(sys.argv[0]) + '-flap.state'
+    path    = '/root/%s' % os.path.basename(sys.argv[0]) + '-flap.state'
     current = path + '.current'
     old     = path + '.old'
     key = "lastStatusChangeTimestamp"
@@ -174,38 +172,35 @@ def check_link_status(switch, skip):
     if os.path.isfile(current):
       os.rename(current, old)
     save_file(data, current)
-    compare_file(current, old)
+    return compare_file(current, old)
 
 def compare_file(current, old):
   if not os.path.isfile(current):
     print "First run, waiting to create history"
-    exit(nagios_unknown)
+    return NAGIOS_UNKNOWN
   if not os.path.isfile(old):
-    exit(nagios_unknown)
+    return NAGIOS_UNKNOWN
   if filecmp.cmp(current, old):
     print "CRITICAL: Entries haven't changed"
-    exit(nagios_critical)
-  else:
-    print "SUCCESS: Entries rules have changed"
-    exit(nagios_ok)
+    return NAGIOS_CRITICAL
+  print "SUCCESS: Entries rules have changed"
+  return NAGIOS_OK
 
 def save_file(data, path):
   file = "\n".join(data)
   try:
-    f = open(path, 'w+')
-    f.write(file)
-    f.close()
+    with open(path, 'w') as f:
+      f.write(file)
   except IOError:
     print "Unable to open file for writing"
-    exit(nagios_unknown)
+    exit(NAGIOS_UNKNOWN)
 
 def threshold(value):
   if value >= crit:
-    return nagios_critical
-  elif value >= warn:
-    return nagios_warning
-  else:
-    return nagios_ok
+    return NAGIOS_CRITICAL
+  if value >= warn:
+    return NAGIOS_WARNING
+  return NAGIOS_OK
 
 def arguments():
   global crit
@@ -240,13 +235,12 @@ def arguments():
 
 def get_creds(filename):
   try:
-    f = open(filename, "r")
-    creds = imp.load_source('data', '', f)
-    f.close()
+    with open(filename, 'r') as f:
+      creds = imp.load_source('data', '', f)
     return creds
   except IOError:
     print cred_usage()
-    exit(nagios_unknown)
+    exit(NAGIOS_UNKNOWN)
 
 def main():
   option, host, filename, devices, skip = arguments()
@@ -256,21 +250,21 @@ def main():
   switch = Server(url)
 
   if option == "dumbno":
-    check_dumbno(switch, skip)
+    exit(check_dumbno(switch, skip))
   elif option == "traffic_status":
-    check_traffic_status(switch, skip)
+    exit(check_traffic_status(switch, skip))
   elif option == "link_status":
-    check_link_status(switch, skip)
+    exit(check_link_status(switch, skip))
   elif option in status_checks:
-    option  =  status_map[option]
-    check_status(switch, option, devices, skip)
+    option  =  STATUS_MAP[option]
+    exit(check_status(switch, option, devices, skip))
   elif option in rate_checks:
-    direction  =  direction_map[option]
-    interfaces =  interface_map[option]
-    check_rate(switch, direction, interfaces, skip)
+    direction  =  DIRECTION_MAP[option]
+    interfaces =  INTERFACE_MAP[option]
+    exit(max(check_rate(switch, direction, interfaces, skip)))
   else:
     print "Invalid option"
-    exit(nagios_unknown)
+    exit(NAGIOS_UNKNOWN)
 
 if __name__ == "__main__":
   main()
