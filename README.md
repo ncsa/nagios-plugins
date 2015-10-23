@@ -125,6 +125,14 @@ Critical on 500 established connections with port of 514
 275 sockets in established state.
 ```
 
+### check_traffic.sh
+
+Sample traffic rate with tcpdump using a BPF for interval and show, compare the ~pkts/rate against specified values
+```
+check_traffic.sh -i eth0 -f "port 514" -t 15s -w 20000 -c 50000
+Traffic rate is ~4784/15s
+```
+
 ### check_pid.sh
 
 Check if pidfile has changed.
