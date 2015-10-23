@@ -5,8 +5,10 @@ Nagios plugins
 
 A file containing the API credentials should be read in using `-f <file>`. Its contents should be formatted like this:
 ```
-user = 'aristauser'
-password = 'aasldfjasdlfjafajdfalsdfj'
+{
+  "user":"aristauser",
+  "password":"blah"
+}
 ```
 
 Note: Interfaces that do not have a description are skipped for many of the checks.
@@ -86,8 +88,10 @@ Check line protocol status for all interfaces except those explicitly skipped:
 
 A file containing the API credentials should be read in using `-f <file>`. Its contents should be formatted like this:
 ```
-user = 'crashplanuser'
-password = 'aasldfjasdlfjafajdfalsdfj'
+{
+  "user":"crashplan@organization.com",
+  "password":"blah"
+}
 ```
 
 Check if backup has been completed in last 48 hours for host:

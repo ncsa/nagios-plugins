@@ -3,7 +3,7 @@
 import sys
 import os
 import argparse
-import imp
+import json
 import filecmp
 import time
 from jsonrpclib import Server
@@ -49,13 +49,15 @@ STATUS_MSG = {
 
 def cred_usage():
   doc = '''
-  Could not open file! Does it exist?
+  Could not open file! Does it exist? Is it valid JSON?
 
-  A file containing the API credentials should be read in using ``-f <file>''
+  A file containing the API credentials in JSON should be read in using ``-f <file>''
   Its contents should be formatted like this:
 
-  user = 'aristauser'
-  password = 'aasldfjasdlfjafajdfalsdfj'
+  {
+    "user":"aristauser",
+    "password":"asdfasdfasdfasdf"
+  }
   '''[1:]
   return doc
 
@@ -236,7 +238,7 @@ def arguments():
 def get_creds(filename):
   try:
     with open(filename, 'r') as f:
-      creds = imp.load_source('data', '', f)
+      creds = json.load(f)
     return creds
   except IOError:
     print cred_usage()
@@ -245,8 +247,10 @@ def get_creds(filename):
 def main():
   option, host, filename, devices, skip = arguments()
   creds = get_creds(filename)
+  user = creds["user"]
+  password  = creds["password"]
 
-  url    = 'https://' + creds.user + ':' + creds.password + host + '/command-api'
+  url    = 'https://' + user + ':' + password + host + '/command-api'
   switch = Server(url)
 
   if option == "dumbno":

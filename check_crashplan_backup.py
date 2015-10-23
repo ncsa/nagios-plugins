@@ -13,7 +13,6 @@ nagios_warning  = 1
 nagios_critical = 2
 nagios_unknown  = 3
 
-import argparse
 parser = argparse.ArgumentParser(description='Last Crashplan backup check')
 parser.add_argument("-s", "--skip", type=str, help="Hosts to skip from backup check")
 parser.add_argument("-d", "--device", type=str, help="Specify deviceName to check (def: all)")
@@ -39,12 +38,12 @@ else:
 
 # Open file
 try:
-  f = open(filename, "r")
-  global data
-  creds = imp.load_source('data', '', f)
-  f.close()
+  with open(filename, 'r') as f:
+    creds = json.load(f)
+  user = creds["user"]
+  password = creds["password"]
 except IOError:
-  print "Could not open file! Does it exist?"
+  print "Could not open file! Does it exist? Is it valid JSON?"
   exit(nagios_unknown)
 
 def backup_check(device, orig_time):
@@ -77,7 +76,7 @@ def check_host_backup():
       backup_check(device, orig_time)
 
 # Make API request
-r = requests.get(url, auth=(creds.user, creds.password))
+r = requests.get(url, auth=(user, password))
 r.raise_for_status()
 
 data  = r.json()
