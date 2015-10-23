@@ -106,3 +106,10 @@ Check if backup has been completed in last 48 hours for all hosts:
 CRITICAL: host1.local: LastCompleteBackup: Aug 20, 2015 11:15:02 AM
 CRITICAL: host2.local: LastCompleteBackup: Aug 20, 2015 11:15:07 AM
 ```
+
+### check_stale_nfs
+
+Checks for stale NFS mounts
+`./check_stale_nfs -p /mnt/nfs`
+
+Source provided in `check_nfs_stale.c`
