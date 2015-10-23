@@ -110,6 +110,25 @@ CRITICAL: host2.local: LastCompleteBackup: Aug 20, 2015 11:15:07 AM
 ### check_stale_nfs
 
 Checks for stale NFS mounts
-`./check_stale_nfs -p /mnt/nfs`
+```
+./check_stale_nfs -p /mnt/nfs
+/mnt/nfs is fine
+```
 
 Source provided in `check_nfs_stale.c`
+
+### check_connections.sh
+
+Critical on 500 established connections with port of 514
+```
+./check_connections.sh -s established -f '( sport = :514 )' -w 400 -c 500
+275 sockets in established state.
+```
+
+### check_pid.sh
+
+Check if pidfile has changed.
+```
+./check_pid.sh -f /var/run/sshd.pid
+Service is still running with the same PID: 13094
+```
