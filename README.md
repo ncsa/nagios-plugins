@@ -140,3 +140,44 @@ Check if pidfile has changed.
 ./check_pid.sh -f /var/run/sshd.pid
 Service is still running with the same PID: 13094
 ```
+
+### check_ossec.py
+
+Script is designed to be run on an OSSEC server.
+
+Check that all OSSEC services are running
+```
+./check_ossec.py -T status
+OK: All services running
+```
+
+Check status of all OSSEC agents except one
+```
+./check_ossec.py -T connected --skip www2.company.com
+OK: All agents connected
+```
+
+Check status of specific OSSEC agents
+```
+./check_ossec.py -T connected --agents www1.company.com,www2.company.com
+OK: All agents connected
+```
+
+Report critical if more than 3 agents are offline and warning if at least 1 is offline.
+```
+./check_ossec.py -T connected -c 3 -w 1
+WARNING: 1 agents not connected
+Name: www3.company.com, Status: Never connected
+```
+
+Check that a syscheck scan as completed for all agents in the last 12 hours, warning if 6
+```
+./check_ossec.py -T syscheck -c 12 -w 6
+OK: Agent syscheck runtimes are up to date
+```
+
+Check that a rootcheck scan as completed for agent in the last 4 hours, warning if 2
+```
+./check_ossec.py -T rootcheck --agents www2.company.com -c 4 -w 2
+WARNING: www2.company.com: LastCheckTime: 2015-11-13 12:24:29
+```
