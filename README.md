@@ -181,3 +181,19 @@ Check that a rootcheck scan as completed for agent in the last 4 hours, warning 
 ./check_ossec.py -T rootcheck --agents www2.company.com -c 4 -w 2
 WARNING: www2.company.com: LastCheckTime: 2015-11-13 12:24:29
 ```
+
+### check_file_growth.sh
+
+Check if file has grown or reduced in specified time interval
+
+```
+/usr/local/nagios/libexec/check_file_growth.sh -f /usr/local/bro/logs/current/conn.log -M stat -i 3
+File grew by 329225 bytes
+```
+
+Check file that is rotated using time modifiers
+
+```
+/usr/local/nagios/libexec/check_file_growth.sh -f /logs/%Y/%m/%d/host.log -M stat -i 20
+File grew by 1371 bytes
+```
